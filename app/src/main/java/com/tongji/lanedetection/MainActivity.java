@@ -26,7 +26,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // 打开app的时候隐藏顶部状态栏
-        WindowInsetsController ic = getWindow().getInsetsController();
+//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN); // 警告已过期
+        WindowInsetsController ic = getWindow().getInsetsController(); // 30 API
         if (ic != null) {
             ic.hide(WindowInsets.Type.statusBars());
             ic.hide(WindowInsets.Type.navigationBars());
