@@ -10,6 +10,7 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -55,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
         // 开始检测
         PreviewView cameraPreview = findViewById(R.id.camera_preview);
         ImageView canvas = findViewById(R.id.box_label_canvas);
+        TextView costTimeText = findViewById(R.id.cost_time);
 
         ImageAnalyzer imageAnalyzer = new ImageAnalyzer(
                 MainActivity.this,
                 cameraPreview,
+                costTimeText,
                 canvas,
                 yolov5,
                 laneNet

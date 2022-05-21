@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageAnalysis;
@@ -42,6 +43,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         Bitmap bitmap;
     }
 
+    private final TextView costTimeText;
     private final ImageView boxLabelCanvas;
     private final PreviewView previewView;
     private final ImageProcess imageProcess;
@@ -52,6 +54,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
     public ImageAnalyzer (
             Context context,
             PreviewView previewView,
+            TextView costTimeText,
             ImageView boxLabelCanvas,
             YoloV5 yolov5Detector,
             LaneNet laneNetDetector
@@ -59,6 +62,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
 
         this.previewView = previewView;
         this.boxLabelCanvas = boxLabelCanvas;
+        this.costTimeText = costTimeText;
         this.yolov5Detector = yolov5Detector;
         this.laneNetDetector = laneNetDetector;
         this.imageProcess = new ImageProcess();
@@ -94,25 +98,15 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         int imageWidth = image.getWidth();
 
         // 图片适应屏幕fill_start格式的bitmap
-//        if (fullScreenTransform == null) {
-//            double scale = Math.max(
-//                    previewHeight / (double) (imageHeight),
-//                    previewWidth / (double) (imageWidth)
-//            );
-//            fullScreenTransform = imageProcess.getTransformationMatrix(
-//                    imageWidth, imageHeight,
-//                    (int) (scale * imageWidth), (int) (scale * imageHeight),
-//                    0, false
-//            );
-//        }
-
-        Observable.create( (ObservableEmitter<Result> emitter) -> {
-
+        if (fullScreenTransform == null) {
             fullScreenTransform = imageProcess.getTransformationMatrix(
                     imageWidth, imageHeight,
                     previewWidth, previewHeight,
                     0, false
             );
+        }
+
+        Observable.create( (ObservableEmitter<Result> emitter) -> {
 
             long time1 = System.currentTimeMillis();
 
@@ -155,12 +149,12 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( (Result result) -> {
-                    Log.i("Bitmap", result.bitmap.getWidth() + "  "+ result.bitmap.getHeight());
                     boxLabelCanvas.setImageBitmap(result.bitmap);
-                    Log.i("Analyzer", "bitmap: " + Long.toString(result.costTime1) + "ms");
-                    Log.i("Analyzer", "yolo: " + Long.toString(result.costTime2) + "ms");
-                    Log.i("Analyzer", "laneNet: " + Long.toString(result.costTime3) + "ms");
-                    Log.i("Analyzer", "total: " + Long.toString(result.costTimeTotal) + "ms");
+                    costTimeText.setText(Long.toString(result.costTimeTotal) + "ms");
+//                    Log.i("Analyzer", "bitmap: " + Long.toString(result.costTime1) + "ms");
+//                    Log.i("Analyzer", "yolo: " + Long.toString(result.costTime2) + "ms");
+//                    Log.i("Analyzer", "laneNet: " + Long.toString(result.costTime3) + "ms");
+//                    Log.i("Analyzer", "total: " + Long.toString(result.costTimeTotal) + "ms");
                 });
 
     }
