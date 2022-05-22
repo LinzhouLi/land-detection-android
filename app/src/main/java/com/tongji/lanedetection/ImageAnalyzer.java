@@ -49,7 +49,8 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
     private final ImageProcess imageProcess;
     private final YoloV5 yolov5Detector;
     private final LaneNet laneNetDetector;
-    private Matrix fullScreenTransform = null;
+    private float scalex = 0.0f;
+    private float scaley = 0.0f;
 
     public ImageAnalyzer (
             Context context,
@@ -98,13 +99,8 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         int imageWidth = image.getWidth();
 
         // 图片适应屏幕fill_start格式的bitmap
-        if (fullScreenTransform == null) {
-            fullScreenTransform = imageProcess.getTransformationMatrix(
-                    imageWidth, imageHeight,
-                    previewWidth, previewHeight,
-                    0, false
-            );
-        }
+        scalex = (float)previewWidth / imageWidth;
+        scaley = (float)previewHeight / imageHeight;
 
         Observable.create( (ObservableEmitter<Result> emitter) -> {
 
@@ -112,20 +108,18 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
 
             // bitmap
             Bitmap imageBitmap = convertImageProxyToBitmap(image);
-            Bitmap fullImageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageWidth, imageHeight, fullScreenTransform, false);
 
             long time2 = System.currentTimeMillis();
 
 //            Log.i("imageBitmap", imageBitmap.getWidth() + "  " + imageBitmap.getHeight());
-//            Log.i("fullImageBitmap", fullImageBitmap.getWidth() + "  " + fullImageBitmap.getHeight());
 
             // 调用yolov5预测接口
-            YoloV5.Obj[] objects = yolov5Detector.detect(fullImageBitmap, true);
+            YoloV5.Obj[] objects = yolov5Detector.detect(imageBitmap, true);
 
             long time3 = System.currentTimeMillis();
 
             // 调用laneNet预测接口
-            LaneNet.Point[] points = laneNetDetector.detect(fullImageBitmap, true);
+            LaneNet.Point[] points = laneNetDetector.detect(imageBitmap, true);
 
             long time4 = System.currentTimeMillis();
 
@@ -165,14 +159,14 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         Paint boxPaint = new Paint();
         boxPaint.setColor(Color.WHITE);
         boxPaint.setStyle(Paint.Style.FILL);
-        final int width = 11;
+        final int width = 7;
 
         for (LaneNet.Point point : points) {
             RectF location = new RectF();
-            location.left = point.x - width / 2;
-            location.top = point.y - width / 2;
-            location.right = point.x + width / 2 + 1;
-            location.bottom = point.y + width / 2 + 1;
+            location.left = (point.x - width / 2) * scalex;
+            location.top = (point.y - width / 2) * scaley;
+            location.right = (point.x + width / 2 + 1) * scalex;
+            location.bottom = (point.y + width / 2 + 1) * scaley;
 
 //            Log.i("Point", point.x + "  " +  point.y);
 
@@ -200,10 +194,10 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
             boxPaint.setColor(YoloV5.getColor(label));
 
             RectF location = new RectF();
-            location.left = res.x;
-            location.top = res.y;
-            location.right = res.x + res.w;
-            location.bottom = res.y + res.h;
+            location.left = res.x * scalex;
+            location.top = res.y * scaley;
+            location.right = (res.x + res.w) * scalex;
+            location.bottom = (res.y + res.h) * scaley;
 //            Log.i("Object", location.left + "  " + location.right + "  " + location.top + "  " + location.bottom);
 
             canvas.drawRect(location, boxPaint);
