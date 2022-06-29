@@ -490,7 +490,6 @@ namespace lane {
     // public native boolean Init(AssetManager mgr);
     extern "C" JNIEXPORT jboolean JNICALL
     Java_com_tongji_lanedetection_LaneNet_init(JNIEnv *env, jobject thiz, jobject assetManager) {
-
         ncnn::Option opt;
         opt.lightmode = true;
         opt.num_threads = 4;
@@ -501,9 +500,7 @@ namespace lane {
         // use vulkan compute
         if (ncnn::get_gpu_count() != 0)
             opt.use_vulkan_compute = true;
-
         AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
-
         yolov5.opt = opt;
 
         // init param
@@ -527,14 +524,10 @@ namespace lane {
         // init jni glue
         jclass localPointCls = env->FindClass("com/tongji/lanedetection/LaneNet$Point");
         pointCls = reinterpret_cast<jclass>(env->NewGlobalRef(localPointCls));
-
         constructortorId = env->GetMethodID(pointCls, "<init>", "(Lcom/tongji/lanedetection/LaneNet;)V");
-
         xId = env->GetFieldID(pointCls, "x", "F");
         yId = env->GetFieldID(pointCls, "y", "F");
-
         return JNI_TRUE;
-
     }
 
     // public native Obj[] Detect(Bitmap bitmap, boolean use_gpu);

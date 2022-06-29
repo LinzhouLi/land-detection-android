@@ -94,7 +94,6 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
 
         int previewHeight = previewView.getHeight();
         int previewWidth = previewView.getWidth();
-
         int imageHeight = image.getHeight();
         int imageWidth = image.getWidth();
 
@@ -103,24 +102,16 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         scaley = (float)previewHeight / imageHeight;
 
         Observable.create( (ObservableEmitter<Result> emitter) -> {
-
             long time1 = System.currentTimeMillis();
-
-            // bitmap
-            Bitmap imageBitmap = convertImageProxyToBitmap(image);
-
+            Bitmap imageBitmap = convertImageProxyToBitmap(image); // bitmap
             long time2 = System.currentTimeMillis();
-
-//            Log.i("imageBitmap", imageBitmap.getWidth() + "  " + imageBitmap.getHeight());
 
             // 调用yolov5预测接口
             YoloV5.Obj[] objects = yolov5Detector.detect(imageBitmap, true);
-
             long time3 = System.currentTimeMillis();
 
             // 调用laneNet预测接口
             LaneNet.Point[] points = laneNetDetector.detect(imageBitmap, true);
-
             long time4 = System.currentTimeMillis();
 
             // 画出预测结果
@@ -128,7 +119,6 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
             Canvas canvas = new Canvas(resultBitmap);
             drawObjects(objects, canvas);
             drawPoints(points, canvas);
-
             long time5 = System.currentTimeMillis();
 
             image.close();
